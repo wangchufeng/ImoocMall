@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>title</title>
+    <script src="https://cdn.bootcss.com/vue/2.4.2/vue.min.js"></script>
+  </head>
+  <body>
+    <div class="test">  <!--computed计算属性-->
+      <p>{{now}}</p>
+      <p>{{now}}</p>
+      <p>{{now}}</p>
+      <p>{{now}}</p>
+      <hr />      <!--横线分割-->
+</div>
+    <div class="test2">  <!--methods方法，注意new（）加了括号-->
+      <p>{{now()}}</p>
+      <p>{{now()}}</p>
+      <p>{{now()}}</p>
+      <p>{{now()}}</p>
+    </div>
+  </body>
+  <script type="text/javascript">
+    var myVue = new Vue({
+      el: ".test",
+      computed: {
+        now: function() {
+          var yanshi = 0;
+          for(var o = 0; o < 2000; o++) {   //延时
+            for(var q = 0; q < 2000; q++) {
+              yanshi++;
+            }
+          }
+          return Date.now()
+        }
+      }
+    });
+    var vue2 = new Vue({
+      el: '.test2',
+      methods: {
+        now: function() {
+          var yanshi = 0;
+          for(var o = 0; o < 2000; o++) {
+            for(var q = 0; q < 2000; q++) {
+              yanshi++;
+            }
+          }
+          return Date.now()
+        }
+      }
+    })
+  </script>
+</html>
