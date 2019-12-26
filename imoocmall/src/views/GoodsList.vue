@@ -9,7 +9,8 @@
         <div class="filter-nav">
           <span class="sortby">Sort by:</span>
           <a href="javascript:void(0)" class="default cur">Default</a>
-          <a @click="sortGoods" href="javascript:void(0)" class="price">Price <svg class="icon icon-arrow-short">
+          <a @click="sortGoods" href="javascript:void(0)" class="price">Price
+            <svg class="icon icon-arrow-short" :class="{'sort-up':!sortFlag}">
               <use xlink:href="#icon-arrow-short"></use>
             </svg></a>
           <a href="javascript:void(0)" class="filterby stopPop" @click="showFilterPop">Filter by</a>
@@ -54,25 +55,31 @@
       </div>
     </div>
     <div class="md-overlay" v-show="overLayFlag" @click="closePop"></div>
+    <modal :mdShow="mdShow" @close="closeModal">
+      <p slot="message">
+        请先登录
+      </p>
+      <div slot="btnGroup">
+        <a class="btn btn--m" href="javascript:;" @click="closeModal">关闭</a>
+      </div>
+    </modal>
+
+    <modal :mdShow="mdShowCart" @close="closeModal">
+      <p slot="message">
+        <svg class="icon-status-ok">
+          <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#icon-status-ok"></use>
+        </svg>
+        <span>加入购物车成功</span>
+      </p>
+      <div slot="btnGroup">
+        <a class="btn btn--m" href="javascript:;" @click="closeModal">继续购物</a>
+        <router-link to="cart" class="btn btn--m" href="javascript:;">查看购物车</router-link>
+      </div>
+    </modal>
+
     <nav-footer></nav-footer>
   </div>
 </template>
-
-<style>
-  .list-wrap ul::after{
-    clear: both;
-    content: '';
-    height: 0;
-    display: block;
-    visibility: hidden;
-  }
-
-  .load-more{
-    height: 100px;
-    line-height: 100px;
-    text-align: center;
-  }
-</style>
 
 <script>
   import '../assets/css/base.css'
@@ -81,12 +88,14 @@
   import NavHeader from '@/components/NavHeader'
   import NavFooter from '@/components/NavFooter'
   import NavBread from '@/components/NavBread'
+  import Modal from '@/components/Modal'
   import axios from 'axios'
   export default {
     components: {
       NavHeader,
       NavFooter,
-      NavBread
+      NavBread,
+      Modal
     },
     data() {
       return {
@@ -109,10 +118,16 @@
         sortFlag: true,
         page: 1,
         pageSize: 8,
-        busy: true
+        busy: true,
+        mdShow:false,
+        mdShowCart: false,
       }
     },
     methods: {
+      closeModal(){
+        this.mdShow = false;
+        this.mdShowCart = false
+      },
       getGoodsList(flag) {
         this.loading = true
         var param = {
@@ -121,7 +136,7 @@
           sort: this.sortFlag ? 1 : -1,
           priceLevel:this.priceChecked
         }
-        axios.get('/goods', {
+        axios.get('/goods/list', {
           params: param
         }).then((res) => {
           if (res.data.status == "0") {
@@ -168,9 +183,9 @@
           productId:productId
         }).then((res)=>{
             if(res.data.status==0){
-             alert("suc")
+              this.mdShowCart = true
             }else{
-              alert("fail")
+              this.mdShow = true
             }
           }
         )
@@ -182,3 +197,30 @@
   }
 
 </script>
+
+<style>
+  .list-wrap ul::after{
+    clear: both;
+    content: '';
+    height: 0;
+    display: block;
+    visibility: hidden;
+  }
+
+  .load-more{
+    height: 100px;
+    line-height: 100px;
+    text-align: center;
+  }
+  .sort-up{
+    transform: rotate(180deg);
+    transition: all .3s ease-out;
+  }
+  .icon-arrow-short{
+    transition: all .3s ease-out ;
+  }
+  .btn:hover{
+    background-color: #ffe5e6;
+    transition: all .3s ease-out;
+  }
+</style>

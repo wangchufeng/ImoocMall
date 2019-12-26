@@ -18,7 +18,7 @@ mongoose.connection.on("disconnected", function () {
   console.log("MongoDB disconnected")
 })
 // 查询商品
-router.get("/", function (req, res, next) {
+router.get("/list", function (req, res, next) {
   let sort = parseInt(req.param("sort"));
   let page = parseInt(req.param("page"))
   let pageSize = parseInt(req.param("pageSize"))
@@ -106,7 +106,6 @@ router.post("/addCart", function (req, res, next) {
           errHandler(err);
           reject(err);
         } else {
-          console.log(doc)
           resolve(doc)
         }
       })
