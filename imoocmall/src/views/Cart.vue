@@ -71,7 +71,8 @@
               <li v-for="item in cartList">
                 <div class="cart-tab-1">
                   <div class="cart-item-check">
-                    <a class="checkbox-btn item-check-btn" :class="{'check':item.checked=='1'}" @click="editCart('checked',item)">
+                    <a class="checkbox-btn item-check-btn" :class="{'check':item.checked=='1'}"
+                      @click="editCart('checked',item)">
                       <svg class="icon icon-ok">
                         <use xlink:href="#icon-ok"></use>
                       </svg>
@@ -85,7 +86,7 @@
                   </div>
                 </div>
                 <div class="cart-tab-2">
-                  <div class="item-price">{{item.salePrice}}</div>
+                  <div class="item-price">{{item.salePrice | currency}}</div>
                 </div>
                 <div class="cart-tab-3">
                   <div class="item-quantity">
@@ -99,7 +100,7 @@
                   </div>
                 </div>
                 <div class="cart-tab-4">
-                  <div class="item-price-total">{{item.salePrice * item.productNum}}</div>
+                  <div class="item-price-total">{{(item.salePrice * item.productNum) | currency}}</div>
                 </div>
                 <div class="cart-tab-5">
                   <div class="cart-item-opration">
@@ -129,16 +130,17 @@
             </div>
             <div class="cart-foot-r">
               <div class="item-total">
-                Item total: <span class="total-price">{{totalPricer}}</span>
+                Item total: <span class="total-price">{{totalPricer | currency('$')}}</span>
               </div>
               <div class="btn-wrap">
-                <a class="btn btn--red">Checkout</a>
+                <a class="btn btn--red" :class="{'btn-dis':checkedCount==0}" @click="checkOut">Checkout</a>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
     <modal :mdShow="modalConfirm" @close="closeModal">
       <p slot="message">
         你确认要删除此条数据吗
@@ -148,6 +150,16 @@
         <a class="btn btn--m" href="javascript:;" @click="closeModal">关闭</a>
       </div>
     </modal>
+
+    <modal :mdShow="show" @close="closeModal">
+      <p slot="message">
+        请先登录
+      </p>
+      <div slot="btnGroup">
+        <a class="btn btn--m" href="javascript:;" @click="closeModal">关闭</a>
+      </div>
+    </modal>
+
     <nav-footer></nav-footer>
   </div>
 </template>
@@ -186,8 +198,11 @@
   import NavBread from '@/components/NavBread'
   import Modal from '@/components/Modal'
   import axios from 'axios'
+  import {
+    currency
+  } from '../util/currency'
   export default {
-    components:{
+    components: {
       NavHeader,
       NavFooter,
       NavBread,
@@ -195,90 +210,117 @@
     },
     data() {
       return {
-        cartList:[],
-        productId:'',
-        modalConfirm:false,
+        cartList: [],
+        productId: '',
+        modalConfirm: false,
+        show: false,
         // checkAllFlag:false,
       }
     },
-    mounted () {
+    filters: {
+      currency: currency
+    },
+    mounted() {
       this.init()
+      // this.test()
     },
     computed: {
-      checkAllFlag(){
+      checkAllFlag() {
         return this.checkedCount == this.cartList.length
       },
-      checkedCount(){
+      checkedCount() {
         let i = 0;
-        this.cartList.forEach((item)=>{
-          if(item.checked == '1'){
-            i++
-          }
-        })
+        if (this.cartList) {
+          this.cartList.forEach((item) => {
+            if (item.checked == '1') {
+              i++
+            }
+          })
+        }
         return i;
       },
-      totalPricer(){
+      totalPricer() {
         let money = 0;
-        this.cartList.forEach((item)=>{
-          if(item.checked==1){
-            money += parseFloat(item.salePrice) * parseFloat(item.productNum)
-          }
-        })
+        if (this.cartList) {
+          this.cartList.forEach((item) => {
+            if (item.checked == 1) {
+              money += parseFloat(item.salePrice) * parseFloat(item.productNum)
+            }
+          })
+        }
         return money
       }
     },
     methods: {
-      init(){
-        axios.get("/users/cartList").then((res)=>{
+      test() {
+        this.other = 'hello'
+        console.log("test")
+        // this.show = true
+        console.log(this.other)
+        this.$forceUpdate();
+      },
+      init() {
+        axios.get("/users/cartList").then((res) => {
           this.cartList = res.data.result;
+          if (res.data.status == "10001") {
+            this.show = true
+          }
         })
       },
-      delCartConfirm(productId){
+      delCartConfirm(productId) {
         this.productId = productId
         this.modalConfirm = true
       },
-      closeModal(){
+      closeModal() {
         this.modalConfirm = false
+        this.show = false
       },
-      delCart(){
-        axios.post("/users/cartDel",{
-          productId:this.productId
-        }).then((res)=>{
-          if(res.data.status=="0"){
+      delCart() {
+        axios.post("/users/cartDel", {
+          productId: this.productId
+        }).then((res) => {
+          if (res.data.status == "0") {
             this.modalConfirm = false
             this.init()
           }
         })
       },
-      editCart(flag,item){
-        if(flag=="add"){
-          item.productNum ++;
-        }else if(flag=="minus"){
-          if(item.productNum<=1){
+      editCart(flag, item) {
+        if (flag == "add") {
+          item.productNum++;
+        } else if (flag == "minus") {
+          if (item.productNum <= 1) {
             return
           }
-          item.productNum --;
-        }else{
-          item.checked = item.checked=='1'?'0':'1'
+          item.productNum--;
+        } else {
+          item.checked = item.checked == '1' ? '0' : '1'
         }
-        axios.post("/users/cartEdit",{
-          productId:item.productId,
-          productNum:item.productNum,
-          checked:item.checked
-        }).then((res)=>{
+        axios.post("/users/cartEdit", {
+          productId: item.productId,
+          productNum: item.productNum,
+          checked: item.checked
+        }).then((res) => {
 
         })
       },
-      toggleCheckAll(){
+      toggleCheckAll() {
         let flag = !this.checkAllFlag;
-        this.cartList.forEach((item)=>{
-          item.checked = flag?'1':'0'
+        this.cartList.forEach((item) => {
+          item.checked = flag ? '1' : '0'
         })
-        axios.post("/users/editCheckAll",{
-          checkAll:flag
-        }).then((res)=>{
+        axios.post("/users/editCheckAll", {
+          checkAll: flag
+        }).then((res) => {
 
         })
+      },
+      checkOut() {
+        if (this.checkedCount > 0) {
+          this.$router.push({
+            path: '/address'
+          })
+        }
       }
     }
   }
