@@ -65,6 +65,12 @@ router.post('/login', function (req, res, next) {
             userName: doc.userName
           }
         })
+      }else{
+        res.json({
+          status:'1',
+          msg:'账号密码错误',
+          result:''
+        })
       }
     }
   )
@@ -348,4 +354,21 @@ router.get("/orderDetail", function (req,res,next) {
       }
   })
 });
+
+router.get("/getCartCount",function(req,res,next){
+  let userId = req.cookies.userId;
+  dataFindOne(User,{userId:userId}).then((doc)=>{
+    if(doc){
+      let cartCount = 0
+      doc.cartList.forEach((item)=>{
+        cartCount += parseFloat(item.productNum)
+      })
+      res.json({
+        status:'0',
+        msg:'',
+        result: cartCount
+      })
+    }
+  })
+})
 module.exports = router;

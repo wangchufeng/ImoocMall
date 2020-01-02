@@ -102,18 +102,26 @@
         userPwd: '',
         errorTip: '',
         loginModalFlag: false,
-        nickName:'',
-        cartCount:'1'
+        // cartCount:'1'
       }
     },
     mounted () {
       this.checkLogin();
     },
+    computed: {
+      nickName(){
+        return this.$store.state.nickName;
+      },
+      cartCount(){
+        return this.$store.state.cartCount
+      }
+    },
     methods: {
       checkLogin(){
          axios.get("/users/checkLogin").then((res)=>{
            if(res.data.status=='0'){
-             this.nickName = res.data.result
+            this.$store.commit('updateUserInfo', res.data.result)
+            this.getCartCount()
            }
          })
       },
@@ -129,7 +137,8 @@
           if(res.data.status =="0"){
             this.errorTip = false;
             this.loginModalFlag = false;
-            this.nickName = res.data.result.userName
+            this.$store.commit('updateUserInfo', res.data.result.userName)
+            this.getCartCount()
           }else{
             this.errorTip = true
           }
@@ -137,8 +146,21 @@
       },
       logOut(){
         axios.post("/users/logout").then((res)=>{
+          let path = this.$route.pathname
           if(res.data.status=="0"){
-            this.nickName = '';
+            this.$store.commit('updateUserInfo', ''),
+            this.$store.commit('initCartCount',0)
+          }else{
+            if(this.$route.path!='/goods'){
+              this.$route.path.push("/goods")
+            }
+          }
+        })
+      },
+      getCartCount(){
+        axios.get("/users/getCartCount").then((res)=>{
+          if(res.data.status=="0"){
+            this.$store.commit('initCartCount',res.data.result)
           }
         })
       }

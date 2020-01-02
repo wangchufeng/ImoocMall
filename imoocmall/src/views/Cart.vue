@@ -104,7 +104,7 @@
                 </div>
                 <div class="cart-tab-5">
                   <div class="cart-item-opration">
-                    <a href="javascript:;" class="item-edit-btn" @click="delCartConfirm(item.productId)">
+                    <a href="javascript:;" class="item-edit-btn" @click="delCartConfirm(item)">
                       <svg class="icon icon-del">
                         <use xlink:href="#icon-del"></use>
                       </svg>
@@ -211,10 +211,9 @@
     data() {
       return {
         cartList: [],
-        productId: '',
+        delitem: {},
         modalConfirm: false,
         show: false,
-        // checkAllFlag:false,
       }
     },
     filters: {
@@ -267,8 +266,8 @@
           }
         })
       },
-      delCartConfirm(productId) {
-        this.productId = productId
+      delCartConfirm(item) {
+        this.item = item
         this.modalConfirm = true
       },
       closeModal() {
@@ -277,11 +276,12 @@
       },
       delCart() {
         axios.post("/users/cartDel", {
-          productId: this.productId
+          productId: this.item.productId
         }).then((res) => {
           if (res.data.status == "0") {
             this.modalConfirm = false
             this.init()
+            this.$store.commit("updateCartCount", -this.item.productNum)
           }
         })
       },
@@ -301,7 +301,13 @@
           productNum: item.productNum,
           checked: item.checked
         }).then((res) => {
-
+          let num = 0;
+          if (flag == 'add') {
+            num = 1;
+          } else if (flag == 'minus') {
+            num = -1;
+          }
+          this.$store.commit("updateCartCount", num);
         })
       },
       toggleCheckAll() {
